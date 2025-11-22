@@ -1,0 +1,1 @@
+These logos are best viewed if device is in landscape orientation.
