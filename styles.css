@@ -1,0 +1,232 @@
+/* ============================================
+   AquaGuide Modern iOS Style (Style C Hybrid)
+   --------------------------------------------
+   This stylesheet adds:
+   - Apple-like cards
+   - Glass blur effects
+   - Clean shadows
+   - iOS transitions
+   - Aqua gradient helpers
+   ============================================ */
+
+
+/* Base Layout Tweaks */
+body {
+  background: #f4f6f9;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
+/* --------------------------------------------
+   iOS Card Style
+   -------------------------------------------- */
+.ios-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 18px 22px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.ios-card:active {
+  transform: scale(.96);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+
+
+/* --------------------------------------------
+   Glassmorphism Containers
+   -------------------------------------------- */
+.glass {
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+
+
+/* --------------------------------------------
+   Aqua Gradient Helpers
+   -------------------------------------------- */
+.aqua-gradient {
+  background: linear-gradient(
+    180deg,
+    #00529c 0%,
+    #0080ff 60%,
+    #5ac8fa 100%
+  );
+}
+
+.aqua-title-text {
+  background: linear-gradient(90deg, #ffffff, #e8f7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+
+/* --------------------------------------------
+   iOS Modal Sheets
+   -------------------------------------------- */
+.modal-sheet {
+  background: #ffffff;
+  border-radius: 30px 30px 0 0;
+  padding: 1.5rem;
+  box-shadow: 0 -6px 18px rgba(0,0,0,0.15);
+}
+
+.modal-overlay {
+  backdrop-filter: blur(18px);
+  background: rgba(0,0,0,0.4);
+  transition: opacity .2s ease-in-out;
+}
+
+
+
+/* --------------------------------------------
+   Search Modal Elements
+   -------------------------------------------- */
+#search-modal input {
+  font-size: 1.05rem;
+}
+
+#search-modal .list-header {
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+#search-modal .search-result-item {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background .15s ease;
+}
+
+#search-modal .search-result-item:active {
+  background: #f1f5f9;
+}
+
+
+
+/* --------------------------------------------
+   Detail View Formatting
+   -------------------------------------------- */
+#detail-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+#detail-content p {
+  line-height: 1.55;
+  letter-spacing: 0.2px;
+}
+
+
+
+/* --------------------------------------------
+   Video Card Styling
+   -------------------------------------------- */
+.video-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 1.25rem;
+  transition: transform .15s ease;
+}
+
+.video-card:active {
+  transform: scale(.97);
+}
+
+.video-thumbnail {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.video-play-icon {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(255,255,255,0.95);
+  padding: 0.45rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+}
+
+
+
+/* --------------------------------------------
+   PDF Viewer Modal Overrides
+   -------------------------------------------- */
+#pdf-modal iframe {
+  border-radius: 0 0 20px 20px;
+}
+
+
+
+/* --------------------------------------------
+   Admin Console UI Extras
+   -------------------------------------------- */
+.admin-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+}
+
+.admin-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #00529c;
+}
+
+
+
+/* --------------------------------------------
+   Smooth Fade Animations
+   -------------------------------------------- */
+.fade-in {
+  animation: fadeIn .25s ease-out forwards;
+}
+.fade-out {
+  animation: fadeOut .25s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(12px); }
+}
+
+
+
+/* --------------------------------------------
+   Utility Fixes for iOS Safari
+   -------------------------------------------- */
+input, button, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overscroll-behavior-y: none;
+}
+

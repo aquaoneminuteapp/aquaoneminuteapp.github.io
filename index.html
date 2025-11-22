@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AquaGuide – Modern iOS App</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Apple-like font -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap">
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      overscroll-behavior: none;
+    }
+
+    /* Aqua iOS Gradient Header */
+    .aqua-header {
+      background: linear-gradient(
+        180deg,
+        #00529c 0%,
+        #0080ff 60%,
+        #5ac8fa 100%
+      );
+    }
+
+    /* Glass-like search bar */
+    .glass {
+      backdrop-filter: blur(14px);
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .ios-card {
+      background: white;
+      border-radius: 22px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: transform .2s ease;
+    }
+    .ios-card:active {
+      transform: scale(.97);
+    }
+
+    /* Fullscreen Search Modal (Apple Maps style) */
+    #search-modal {
+      backdrop-filter: blur(18px);
+      background: rgba(0, 0, 0, 0.35);
+      transition: all 0.25s ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+  <!-- ======================================== -->
+  <!--            AQUA iOS HEADER               -->
+  <!-- ======================================== -->
+  <header class="aqua-header pb-6 pt-10 px-4 text-center relative">
+    
+    <!-- Big Aqua Logo -->
+    <img src="logo.png"
+         alt="Aqua Logo"
+         class="mx-auto mb-3"
+         style="width: 160px; height: auto;">
+
+    <!-- App Title -->
+    <h1 class="text-white text-2xl font-bold">
+      AquaGuide
+    </h1>
+
+    <!-- Search Bar with mini logo -->
+    <div id="search-bar"
+         class="glass mt-6 mx-auto rounded-2xl px-4 py-3 flex items-center space-x-3 shadow-lg active:scale-[.98] transition w-full max-w-md cursor-pointer"
+         onclick="openSearchModal()">
+      
+      <!-- small logo -->
+      <img src="logo.png"
+           class="w-6 h-6 opacity-90 rounded-md"
+           alt="logo">
+
+      <span class="text-gray-700 text-base">
+        Search the Aqua Guide...
+      </span>
+
+      <i data-lucide="search" class="w-5 h-5 text-gray-600 ml-auto"></i>
+    </div>
+
+  </header>
+
+  <!-- HOME CONTENT -->
+  <main id="home-content" class="px-4 pb-20 -mt-4 relative z-10">
+    <!-- Cards will be injected by menu.js -->
+    <div id="menu-cards" class="space-y-4"></div>
+  </main>
+
+  <!-- ======================================== -->
+  <!--         FULLSCREEN SEARCH MODAL          -->
+  <!-- ======================================== -->
+  <div id="search-modal"
+       class="fixed inset-0 z-40 hidden opacity-0 pointer-events-none transition">
+
+    <!-- Modal Content -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-xl max-h-[85vh] overflow-y-auto">
+
+      <!-- Search Input -->
+      <div class="flex items-center space-x-3 mb-6 px-2 py-2 rounded-xl bg-gray-100">
+        <i data-lucide="search" class="w-5 h-5 text-gray-500"></i>
+        <input id="search-input"
+               type="text"
+               class="flex-grow bg-transparent border-none outline-none p-1 text-lg"
+               placeholder="Search AquaGuide..."
+               oninput="handleSearchInput(event)">
+        <button onclick="closeSearchModal()">
+          <i data-lucide="x" class="w-6 h-6 text-gray-500"></i>
+        </button>
+      </div>
+
+      <!-- Search Results -->
+      <div id="search-results" class="space-y-6">
+        <!-- Results injected dynamically -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!--              DETAIL VIEW                 -->
+  <!-- ======================================== -->
+  <div id="detail-view"
+       class="hidden px-0 pb-10 pt-4">
+    
+    <!-- Back Button -->
+    <div class="flex items-center mb-4 px-4">
+      <button onclick="goHome()"
+              class="flex items-center text-[#00529c] font-semibold space-x-1">
+        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        <span>Back</span>
+      </button>
+    </div>
+
+    <!-- Dynamic Page Title -->
+    <h2 id="detail-title"
+        class="text-2xl font-bold px-4 mb-3 text-gray-800"></h2>
+
+    <!-- Dynamic Content (Video lists OR PDFs OR myaqua.php pages) -->
+    <div id="detail-content"
+         class="px-4 pb-12">
+    </div>
+  </div>
+
+
+  <!-- ======================================== -->
+  <!--              VIDEO MODAL                 -->
+  <!-- ======================================== -->
+  <div id="video-modal"
+       class="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center hidden">
+
+    <div class="bg-white rounded-xl w-full max-w-2xl mx-4 overflow-hidden shadow-2xl transform scale-95 transition-all">
+
+      <!-- Header -->
+      <div class="bg-[#00529c] text-white py-3 px-4 flex justify-between items-center">
+        <h3 id="video-modal-title" class="text-lg font-semibold truncate"></h3>
+        <button onclick="closeVideoModal()">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Video Player -->
+      <div class="p-4">
+        <div class="relative pb-[56.25%] h-0">
+          <iframe id="video-iframe"
+                  class="absolute top-0 left-0 w-full h-full rounded-lg shadow"
+                  src=""
+                  frameborder="0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================== -->
+  <!--              PDF VIEWER MODAL            -->
+  <!-- ======================================== -->
+  <div id="pdf-modal"
+       class="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center hidden">
+
+    <div class="bg-white rounded-2xl w-full max-w-3xl mx-4 overflow-hidden shadow-2xl transform scale-95 transition-all">
+
+      <!-- Header -->
+      <div class="bg-[#00529c] text-white py-3 px-4 flex justify-between items-center">
+        <h3 id="pdf-title" class="text-lg font-semibold truncate"></h3>
+        <button onclick="closePdfModal()">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- PDF iframe -->
+      <iframe id="pdf-iframe"
+              class="w-full h-[70vh] bg-gray-100"
+              src=""></iframe>
+
+    </div>
+  </div>
+
+
+  <!-- ======================================== -->
+  <!--            NOTIFICATIONS MODAL           -->
+  <!-- ======================================== -->
+  <div id="notify-modal"
+       class="fixed inset-0 z-50 bg-black bg-opacity-60 hidden transition">
+
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-xl max-h-[75vh] overflow-y-auto">
+
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-[#00529c]">Corporate Notifications</h3>
+        <button onclick="closeNotifyModal()">
+          <i data-lucide="x" class="w-6 h-6 text-gray-700"></i>
+        </button>
+      </div>
+
+      <div id="notify-list" class="space-y-4">
+        <!-- Notifications inserted here -->
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ======================================== -->
+  <!--           ADMIN BUTTON PLACEHOLDER       -->
+  <!-- ======================================== -->
+  <button id="admin-btn"
+          onclick="openAdminPanel()"
+          class="fixed bottom-6 right-6 bg-[#D55355] text-white px-4 py-3 rounded-2xl shadow-lg font-semibold hidden z-40">
+    Admin
+  </button>
+
+  <!-- ======================================== -->
+  <!--              ADMIN PANEL MODAL           -->
+  <!-- ======================================== -->
+  <div id="admin-modal"
+       class="fixed inset-0 z-50 bg-black bg-opacity-70 hidden">
+
+    <div class="bg-white rounded-2xl max-w-3xl mx-auto mt-10 mb-10 shadow-xl overflow-hidden h-[85vh] flex flex-col">
+
+      <!-- Header -->
+      <div class="bg-[#00529c] text-white p-4 flex items-center justify-between">
+        <h3 class="text-xl font-semibold">Admin Console</h3>
+        <button onclick="closeAdminPanel()">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Admin Content -->
+      <div id="admin-content"
+           class="flex-1 overflow-y-auto p-6 bg-gray-50 space-y-6">
+        <!-- Filled dynamically by admin.js -->
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ======================================== -->
+  <!--          SEARCH NO RESULTS STATE         -->
+  <!-- ======================================== -->
+  <template id="search-empty-template">
+    <div class="text-center text-gray-500 py-10">
+      <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-3 opacity-60"></i>
+      <p class="text-lg font-medium">No results found</p>
+      <p class="text-sm text-gray-400 mt-1">Try different keywords</p>
+    </div>
+  </template>
+
+
+  <!-- ======================================== -->
+  <!--              SCRIPT IMPORTS              -->
+  <!-- ======================================== -->
+
+  <!-- Firebase SDK -->
+<script type="module" src="firebase.js"></script>
+<script type="module" src="app.js"></script>
+<script type="module" src="menu.js"></script>
+<script type="module" src="video.js"></script>
+<script type="module" src="files.js"></script>
+<script type="module" src="notifications.js"></script>
+<script type="module" src="admin.js"></script>
+<script type="module" src="importFromPHP.js"></script>
+
+  <!-- Components -->
+
+
+  <!-- Icons Render -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+
+</body>
+</html>
+
+<script>
+  /* ==========================================================
+     ==========   SEARCH MODAL RUNTIME LOGIC   ================
+     ========================================================== */
+  function openSearchModal() {
+    const modal = document.getElementById("search-modal");
+    modal.classList.remove("hidden", "opacity-0", "pointer-events-none");
+    modal.classList.add("opacity-100");
+
+    setTimeout(() => {
+      document.getElementById("search-input").focus();
+    }, 120);
+  }
+
+  function closeSearchModal() {
+    const modal = document.getElementById("search-modal");
+    modal.classList.add("opacity-0");
+    modal.classList.add("pointer-events-none");
+
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 230);
+  }
+
+
+  /* Called on typing */
+  function handleSearchInput(e) {
+    if (window.aquaSearch) {
+      window.aquaSearch(e.target.value);
+    }
+  }
+
+
+
+  /* ==========================================================
+     ==========   VIDEO MODAL LOGIC   =========================
+     ========================================================== */
+  function openVideoModal(title, youtubeId) {
+    const modal = document.getElementById("video-modal");
+    const iframe = document.getElementById("video-iframe");
+    const titleEl = document.getElementById("video-modal-title");
+
+    titleEl.textContent = title || "Video";
+    iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1`;
+
+    modal.classList.remove("hidden");
+  }
+
+  function closeVideoModal() {
+    const modal = document.getElementById("video-modal");
+    const iframe = document.getElementById("video-iframe");
+
+    iframe.src = ""; /* Stop Playback */
+    modal.classList.add("hidden");
+  }
+
+
+
+  /* ==========================================================
+     ==========   PDF VIEWER MODAL LOGIC   ====================
+     ========================================================== */
+  function openPdfModal(title, url) {
+    const modal = document.getElementById("pdf-modal");
+    const iframe = document.getElementById("pdf-iframe");
+    const titleEl = document.getElementById("pdf-title");
+
+    titleEl.textContent = title || "Document";
+    iframe.src = url;
+
+    modal.classList.remove("hidden");
+  }
+
+  function closePdfModal() {
+    const modal = document.getElementById("pdf-modal");
+    const iframe = document.getElementById("pdf-iframe");
+
+    iframe.src = "";
+    modal.classList.add("hidden");
+  }
+
+
+
+  /* ==========================================================
+     ==========   NOTIFICATION MODAL  =========================
+     ========================================================== */
+  function openNotifyModal() {
+    const modal = document.getElementById("notify-modal");
+    modal.classList.remove("hidden");
+    modal.classList.add("opacity-100");
+  }
+
+  function closeNotifyModal() {
+    const modal = document.getElementById("notify-modal");
+    modal.classList.add("opacity-0");
+
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 180);
+  }
+
+
+
+  /* ==========================================================
+     ==========   ADMIN CONSOLE PANEL  ========================
+     ========================================================== */
+  function openAdminPanel() {
+    const modal = document.getElementById("admin-modal");
+    modal.classList.remove("hidden");
+  }
+
+  function closeAdminPanel() {
+    const modal = document.getElementById("admin-modal");
+    modal.classList.add("hidden");
+  }
+
+
+
+  /* ==========================================================
+     ==========   NAVIGATION BETWEEN VIEWS  ===================
+     ========================================================== */
+  function goHome() {
+    document.getElementById("detail-view").classList.add("hidden");
+    document.getElementById("home-content").classList.remove("hidden");
+
+    // Re-render the search bar icons
+    lucide.createIcons();
+  }
+
+  function openDetailPage(title) {
+    document.getElementById("home-content").classList.add("hidden");
+    document.getElementById("detail-view").classList.remove("hidden");
+
+    document.getElementById("detail-title").textContent = title || "";
+
+    lucide.createIcons();
+  }
+
+  /* ==========================================================
+     END OF RUNTIME SCRIPTS
+     ========================================================== */
+</script>
+
+
+
+
