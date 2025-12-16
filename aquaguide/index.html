@@ -305,7 +305,28 @@ window.addEventListener("load", () => {
         </div>
 
         <div id="menu-content" class="page-view my-new-list bg-white p-6 rounded-xl shadow-lg" style="display:none;">
+            <div class="relative mb-6">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                     <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="text" id="menu-search-input" 
+                       class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-[#00529c] focus:ring-1 focus:ring-[#00529c] sm:text-sm shadow-sm transition duration-150" 
+                       placeholder="Search ">
+                <div id="search-clear-btn" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer hidden">
+                     <i data-lucide="x" class="h-5 w-5 text-gray-400 hover:text-gray-600"></i>
+                </div>
             </div>
+
+            <div id="main-menu-list">
+                </div>
+            
+            <div id="search-results-list" class="hidden">
+                 <ul class="list-none space-y-2"></ul>
+                 <div id="no-results-msg" class="text-center py-8 text-gray-500 hidden">
+                    <p>No results found matching your search.</p>
+                 </div>
+            </div>
+        </div>
 
         <div id="detail-view-container" class="page-view bg-white rounded-xl shadow-lg overflow-hidden" style="display:none; padding: 0;"> 
              <iframe id="detail-iframe" src="" title="Reference Guide Content" loading="lazy" class="w-full h-full min-h-[80vh]"></iframe>
@@ -368,8 +389,8 @@ window.addEventListener("load", () => {
         window.closeNotificationModal = closeNotificationModal; 
         window.openVideoModal = openVideoModal; 
         window.showNotificationsPage = showNotificationsPage;
-        window.renderNotificationModalList = renderNotificationModalList; // <--- ADD THIS LINE
-        window.renderNotificationPage = renderNotificationPage; // <--- ADD THIS LINE
+        window.renderNotificationModalList = renderNotificationModalList; 
+        window.renderNotificationPage = renderNotificationPage; 
         
         // Functions needed by delegated handlers
         window.renderVideoEditForm = renderVideoEditForm; 
@@ -422,20 +443,19 @@ window.addEventListener("load", () => {
             });
         }
         
-        // --- HELPER: FORMAT DATE PRETTY ---
         // --- HELPER: FORMAT DATE PRETTY (UPDATED FOR SHORT FORMAT) ---
-function formatDatePretty(dateString) {
-    if (!dateString) return '';
-    // Append T12:00:00 to prevent timezone rollback issues
-    const dateObj = new Date(dateString + 'T12:00:00'); 
-    
-    // Returns format: 12/5/25
-    return dateObj.toLocaleDateString('en-US', { 
-        year: '2-digit', 
-        month: 'numeric', 
-        day: 'numeric' 
-    });
-}
+        function formatDatePretty(dateString) {
+            if (!dateString) return '';
+            // Append T12:00:00 to prevent timezone rollback issues
+            const dateObj = new Date(dateString + 'T12:00:00'); 
+            
+            // Returns format: 12/5/25
+            return dateObj.toLocaleDateString('en-US', { 
+                year: '2-digit', 
+                month: 'numeric', 
+                day: 'numeric' 
+            });
+        }
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
@@ -1580,7 +1600,7 @@ function renderNotificationPage(showAll = false) {
 
         function generateMenu(data) {
             menuData = data; 
-            const menuContent = $('#menu-content');
+            const menuContent = $('#main-menu-list'); // Changed target to specific list container
             const mainList = $('<ul/>', { 'class': 'main-category-list list-none space-y-4' });
             const groups = {};
             let currentGroup = null;
@@ -1642,7 +1662,7 @@ function renderNotificationPage(showAll = false) {
             // UPDATED: Check if we are returning from redirect.html/viewer.html
             // If so, restore scroll position immediately without animation for better UX
             if (localStorage.getItem('returnFromViewer') === 'true') {
-                menuContent.show(); // Show instantly to allow scroll
+                $('#menu-content').show(); // Show instantly to allow scroll
                 const savedPos = localStorage.getItem('aqua_scroll_pos');
                 if (savedPos) {
                     console.log("Restoring scroll position:", savedPos);
@@ -1651,9 +1671,84 @@ function renderNotificationPage(showAll = false) {
                 localStorage.removeItem('returnFromViewer');
                 replaceLucideIcons(); 
             } else {
-                menuContent.fadeIn(500, replaceLucideIcons); 
+                $('#menu-content').fadeIn(500, replaceLucideIcons); 
             }
             updateBackButton(); 
+        }
+
+        // --- NEW SEARCH FUNCTIONALITY ---
+        function filterMenu(query) {
+            const resultsList = $('#search-results-list ul');
+            const noResultsMsg = $('#no-results-msg');
+            const searchResultsContainer = $('#search-results-list');
+            const mainMenu = $('#main-menu-list');
+            const clearBtn = $('#search-clear-btn');
+
+            // Handle Clear Button Visibility
+            if (query.length > 0) {
+                clearBtn.removeClass('hidden');
+            } else {
+                clearBtn.addClass('hidden');
+                mainMenu.show();
+                searchResultsContainer.addClass('hidden');
+                return;
+            }
+
+            const lowerQuery = query.toLowerCase();
+            const filtered = menuData.filter(item => {
+                const nameMatch = item.aqua_name.toLowerCase().includes(lowerQuery);
+                const menuMatch = item.aqua_menu.toLowerCase().includes(lowerQuery);
+                return nameMatch || menuMatch;
+            });
+
+            if (filtered.length === 0) {
+                mainMenu.hide();
+                searchResultsContainer.removeClass('hidden');
+                resultsList.empty();
+                noResultsMsg.removeClass('hidden');
+            } else {
+                mainMenu.hide();
+                searchResultsContainer.removeClass('hidden');
+                noResultsMsg.addClass('hidden');
+                resultsList.empty();
+
+                filtered.forEach(item => {
+                    const name = item.aqua_name;
+                    const category = item.aqua_menu;
+                    const key = item.aqua_key;
+                    
+                    // Highlight logic
+                    // Simple logic to bold the category name if it differs from the item name
+                    const isCategoryHeader = name === category;
+                    const subtitle = !isCategoryHeader ? `<div class="text-xs text-gray-400">${category}</div>` : '';
+                    
+                    // If it's a category header (like "AERATORS"), treat it like the main menu links
+                    let action = `onclick="showDetailPage('${key}', '${name.replace(/'/g, "\\'")}')"`;
+                    
+                    // Special case overrides from generateMenu logic
+                    if (name.startsWith("CALENDAR OF EVENTS") && isCategoryHeader) {
+                        // Keep action
+                    } else if (name.startsWith("CORPORATE NOTIFICATIONS") && isCategoryHeader) {
+                        action = `onclick="showDetailPage('${NOTIFICATION_PAGE_KEY}', '${name.replace(/'/g, "\\'")}')"`;
+                    } else if (isCategoryHeader && !name.startsWith("CALENDAR") && !name.startsWith("CORPORATE")) {
+                        // Pure headers in the original menu often aren't clickable links unless they have content. 
+                        // However, for search, let's make them navigate if they have a key, or just be static if they are just headers.
+                        // In the original, headers just opened accordions. 
+                        // For simplicity in search results, we will link them if they have a distinct key, otherwise they act as labels.
+                        // But mostly users search for *content*.
+                    }
+
+                    const li = `
+                        <li class="border-b border-gray-100 last:border-0 pb-2">
+                            <a href="javascript:void(0);" ${action} class="block hover:bg-gray-50 p-2 rounded transition">
+                                <div class="font-medium text-gray-800 ${isCategoryHeader ? 'text-[#00529c] font-bold' : ''}">${name}</div>
+                                ${subtitle}
+                            </a>
+                        </li>
+                    `;
+                    resultsList.append(li);
+                });
+            }
         }
 
         $(document).ready(function() {
@@ -1668,6 +1763,17 @@ function renderNotificationPage(showAll = false) {
             $('#admin-view-container').on('click', '.move-notif-up-btn', function() { moveNotification(parseInt($(this).data('index')), -1); });
             $('#admin-view-container').on('click', '.move-notif-down-btn', function() { moveNotification(parseInt($(this).data('index')), 1); });
             $('#admin-view-container').on('click', '.remove-notif-btn', function() { removeNotification(parseInt($(this).data('index'))); });
+
+            // Search Event Listeners
+            $('#menu-search-input').on('input', function() {
+                filterMenu($(this).val());
+            });
+
+            $('#search-clear-btn').on('click', function() {
+                $('#menu-search-input').val('');
+                filterMenu('');
+                $('#menu-search-input').focus();
+            });
 
             $.ajax({
                 url: 'https://aquaguide.app/app/json.php',
