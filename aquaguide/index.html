@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00529c">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AquaGuide">
+    <link rel="apple-touch-icon" href="icons/icon192.png">
+
+    <link rel="apple-touch-startup-image" href="splash-640x1136.png" media="(device-width: 320px)">
+    <link rel="apple-touch-startup-image" href="splash-750x1334.png" media="(device-width: 375px)">
+    <link rel="apple-touch-startup-image" href="splash-1125x2436.png" media="(device-width: 375px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="splash-1242x2688.png" media="(device-width: 414px)">
+    <link rel="apple-touch-startup-image" href="splash-1536x2048.png" media="(min-device-width: 768px)">
+    <title id="page-title">AquaGuide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles to enhance the look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display:block;
+            margin: 0px;
+        }
+        .main-menu-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0rem;
+        }
+        /* Custom list style for main categories */
+        .main-category-list > li {
+            margin-top: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .main-category-list a {
+            transition: color 0.15s;
+        }
+        .main-category-list a:hover {
+            color: #d55355; /* Accent color on hover */
+        }
+        /* Ensure all nested lists are styled */
+        .my-new-list ul {
+            list-style: none; /* Removed bullets */
+            padding-left: 0;
+            margin-top: 0.5rem;
+        }
+        /* Style for the dynamic link items */
+        .link-item a {
+            color: #1d4ed8; /* A nice blue for links */
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* --- View Transition Classes --- */
+        .page-view {
+            transition: opacity 0.3s ease-in-out;
+            will-change: opacity;
+        }
+        /* Specific height for the iframe container */
+        #detail-view-container {
+            min-height: 80vh;
+            padding: 0; 
+            position: relative; 
+        }
+        #detail-iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 80vh;
+            border: none;
+        }
+        /* YouTube Embed Wrapper for 16:9 aspect ratio */
+        .video-responsive {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        .video-responsive iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        /* Styling for the custom video list */
+        .video-list-container {
+            padding: 1rem;
+            max-width: 400px; /* Constrain width for mobile focus */
+            margin: 0 auto;
+            text-align: center;
+        }
+        .video-item {
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .video-play-link {
+            display: block;
+            width: 280px; /* Match original width */
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+        .video-cover {
+            width: 280px;
+            height: 157.5px; /* Aspect ratio 16:9 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #00529c;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .video-cover img {
+            opacity: 0.8; /* Dim the placeholder image slightly */
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .play-icon {
+            position: absolute;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            padding: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        /* --- iOS Header Styling --- */
+        #main-header-content {
+            display: grid;
+            grid-template-columns: 1fr 6fr 1fr;
+            align-items: center;
+            min-height: 44px;
+        }
+        #nav-back-container {
+            justify-self: start; 
+            padding-left: 1rem; 
+        }
+        #dynamic-title-container {
+            width: 100%;
+            justify-self: center;
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #admin-button-container {
+            justify-self: end;
+        }
+        .ios-back-link {
+            display: flex;
+            align-items: center;
+            color: #00529c; /* iOS blue accent color */
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.15s;
+        }
+        .ios-back-link:hover {
+            opacity: 0.8;
+        }
+        #dynamic-title {
+            font-size: 0.95rem; /* Small size for long titles */
+            line-height: 1.2;
+            font-weight: 700; 
+            color: #1f2937; 
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: clip;
+            padding: 0 4px;
+            width: 100%; 
+            display: inline-block;
+        }
+        .home-title-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center the entire logo/title block on the home screen */
+            text-align: center;
+            margin: 0 auto;
+        }
+        .app-logo-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* Tailwind space-x-3 equivalent */
+            justify-content: center;
+            width: 100%;
+        }
+        #modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: auto;
+            scroll-behavior: smooth;
+            scrollbar-gutter: stable;
+        }
+        #modal-content-container {
+            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
+        }
+        #notification-modal {
+            touch-action: none;
+        }
+        body.modal-open {
+            overflow: hidden;
+            height: 100vh;
+            position: fixed;
+            width: 100%;
+        }
+        #modal-body::-webkit-scrollbar {
+            width: 18px;
+        }
+        #modal-body::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+            border: 4px solid #f1f5f9;
+        }
+        #modal-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        /* Custom overlay scrollbar */
+        #modal-scrollbar {
+             position:absolute; top:0; right:4px; width:16px; height:100%; z-index:999; pointer-events:none;
+        }
+        #modal-scrollbar-thumb {
+             position:absolute; right:0; width:12px; background:rgba(0,0,0,0.25); border-radius:10px; opacity:0;
+             transition:opacity .3s ease; pointer-events:auto; touch-action:none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="loading-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;display:flex;align-items:center;justify-content:center;z-index:99999;">
+  <div style="text-align:center;">
+    <div style='border:6px solid #e0e0e0;border-top:6px solid #00529c;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:auto;'></div>
+    <p style="margin-top:15px;font-size:16px;color:#00529c;font-weight:bold;">Loading 1-Minute Reference Guide!...</p>
+  </div>
+</div>
+
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+window.addEventListener("load", () => {
+  setTimeout(()=> {
+    const ls=document.getElementById("loading-screen");
+    if(ls) ls.style.display="none";
+  }, 300);
+});
+</script>
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div id="main-header-content" class="main-menu-container py-3 sm:py-4">
+            
+            <div id="nav-back-container">
+                </div>
+            
+            <div id="dynamic-title-container">
+ <center><a href="/"><img src="logo.png" width="150"></a></center>
+                <h1 id="dynamic-title">1-Minute Reference Guide</h1>
+            </div>
+            
+            <div id="admin-button-container">
+                <button id="admin-button" class="px-3 py-1 text-sm font-medium bg-[#D55355] text-white hover:bg-red-700 rounded-lg transition duration-150 shadow-sm" onclick="showAdminView()" style="display: none;"> 
+                    Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-menu-container pt-6 pb-20">
+        <div id="loading" class="text-center p-8">
+            <svg class="animate-spin h-5 w-5 mr-3 inline-block text-[#00529c]" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Loading Menu Data...
+        </div>
+
+        <div id="menu-content" class="page-view my-new-list bg-white p-6 rounded-xl shadow-lg" style="display:none;">
+            </div>
+
+        <div id="detail-view-container" class="page-view bg-white rounded-xl shadow-lg overflow-hidden" style="display:none; padding: 0;"> 
+             <iframe id="detail-iframe" src="" title="Reference Guide Content" loading="lazy" class="w-full h-full min-h-[80vh]"></iframe>
+             <div id="custom-content-area" class="p-4" style="display:none;"></div>
+        </div>
+
+        <div id="admin-view-container" class="page-view bg-white p-6 rounded-xl shadow-lg" style="display:none;">
+            <h2 class="text-2xl font-bold mb-4 text-[#00529c]">Video Admin Console</h2>
+            <div id="admin-content">
+                </div>
+        </div>
+    </main>
+    
+   <div id="notification-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300 opacity-0 pointer-events-none" aria-modal="true" role="dialog" aria-labelledby="modal-title">
+    <div id="modal-content-container" class="bg-white rounded-xl shadow-2xl max-w-sm w-full transition-transform duration-300 transform scale-95 max-h-full h-auto">
+<div id="modal-scrollbar"><div id="modal-scrollbar-thumb"></div></div>
+
+        <div class="p-4 bg-[#D55355] text-white rounded-t-xl">
+            <h2 id="modal-title" class="text-xl font-bold text-center">1-Minute Reference Guide</h2>
+        </div>
+        <div id="modal-body" class="p-6 text-sm text-gray-700 max-h-[60vh] overflow-y-auto">
+            <div class="text-center p-8 text-gray-500">Loading notifications...</div>
+        </div>
+        <div class="p-4 border-t flex justify-center">
+            <button id="modal-close-btn" class="px-6 py-2 text-white bg-[#00529c] hover:bg-[#003c73] rounded-lg font-semibold shadow-md transition duration-150" onclick="closeNotificationModal()">
+                Close &amp; View Guide
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div id="video-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300 opacity-0 pointer-events-none" aria-modal="true" role="dialog" aria-labelledby="video-title">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full transition-transform duration-300 transform scale-95">
+            <div class="p-3 flex justify-between items-center bg-[#00529c] text-white rounded-t-xl">
+                <h2 id="video-title" class="text-lg font-bold truncate"></h2>
+                <button id="video-close-btn" class="text-white hover:text-gray-200 transition duration-150">
+                     <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6">
+                <div class="video-responsive">
+                    <iframe id="youtube-player" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, setDoc, query, orderBy, deleteDoc, Timestamp, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        
+        // --- EXPOSE GLOBAL FUNCTIONS FOR INLINE ONCLICK HANDLERS ---
+        window.handleBackButton = handleBackButton;
+        window.showAdminView = showAdminView;
+        window.showDetailPage = showDetailPage;
+        window.showNotificationModal = showInitialNotificationModal;
+        window.closeNotificationModal = closeNotificationModal; 
+        window.openVideoModal = openVideoModal; 
+        window.showNotificationsPage = showNotificationsPage;
+        window.renderNotificationModalList = renderNotificationModalList; // <--- ADD THIS LINE
+        window.renderNotificationPage = renderNotificationPage; // <--- ADD THIS LINE
+        
+        // Functions needed by delegated handlers
+        window.renderVideoEditForm = renderVideoEditForm; 
+        window.renderNotificationEditForm = renderNotificationEditForm;
+        window.addVideo = addVideo;
+        window.removeVideo = removeVideo;
+        window.saveCurrentVideos = saveCurrentVideos;
+        window.moveVideo = moveVideo;
+        window.addNotification = addNotification;
+        window.removeNotification = removeNotification;
+        window.moveNotification = moveNotification;
+        window.saveNotifications = saveNotifications;
+        window.closePasscodeModal = closePasscodeModal;
+        window.attemptAdminLogin = attemptAdminLogin;
+        
+        // --- GLOBAL STATE & FIREBASE INIT ---
+        setLogLevel('debug');
+        let currentView = 'menu'; // 'menu', 'detail', or 'admin'
+        let db; // Firestore instance
+        let auth; // Auth instance
+        let userId; // Current user ID
+        let menuData = []; // Cache for menu data
+        let videoDataCache = {}; // Cache for video list data
+        let notificationDataCache = []; // NEW: Cache for notification items
+        let lastMenuScrollPosition = 0; // New global variable to store scroll position
+        let isNotificationsLoaded = false;
+
+        // NEW: Key used to trigger the full-page notification renderer
+        const NOTIFICATION_PAGE_KEY = 'NOTIFICATION_PAGE_VIEW';
+        
+        // Helper to wait for Auth/DB readiness before execution
+        function waitForAuthReady() {
+            return new Promise(resolve => {
+                if (isAuthReady) { // Check for global flag
+                    resolve();
+                    return;
+                }
+                const interval = setInterval(() => {
+                    if (isAuthReady) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100); // Check every 100ms
+                setTimeout(() => {
+                    if (!isAuthReady) {
+                        console.warn("Timeout: Firebase Auth/DB did not become fully ready within 5 seconds.");
+                        resolve(); // Resolve anyway to allow non-DB features to load
+                    }
+                }, 5000); 
+            });
+        }
+        
+        // --- HELPER: FORMAT DATE PRETTY ---
+        // --- HELPER: FORMAT DATE PRETTY (UPDATED FOR SHORT FORMAT) ---
+function formatDatePretty(dateString) {
+    if (!dateString) return '';
+    // Append T12:00:00 to prevent timezone rollback issues
+    const dateObj = new Date(dateString + 'T12:00:00'); 
+    
+    // Returns format: 12/5/25
+    return dateObj.toLocaleDateString('en-US', { 
+        year: '2-digit', 
+        month: 'numeric', 
+        day: 'numeric' 
+    });
+}
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // HARDCODED CONFIGURATION 
+        let firebaseConfig = {
+            apiKey: "AIzaSyBu4FaHCylofeNVO5gHkyS4IYFcYZLOiA4",
+            authDomain: "aquaguide2018.firebaseapp.com",
+            projectId: "aquaguide2018",
+            storageBucket: "aquaguide2018.appspot.com",
+            messagingSenderId: "333575317068",
+            appId: "1:333575317068:web:5ab37f19fd58d8c96ab6e9"
+        };
+
+        try {
+             if (typeof __firebase_config !== 'undefined' && __firebase_config !== null) {
+                 const envConfig = JSON.parse(__firebase_config);
+                 if (envConfig.apiKey) {
+                     firebaseConfig = envConfig;
+                 }
+             }
+        } catch (e) {
+             console.warn("Could not parse __firebase_config, using hardcoded fallback:", e);
+        }
+        
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // --- ADMIN ACCESS CONTROL ---
+        let ADMIN_PASSCODE = null; 
+        let isAdminLoggedIn = false; 
+        
+        const ADMIN_UIDS = [
+            "alBdUTxD9odghm9MVukEfMMFwmi2", 
+        ];
+        
+        function isAdmin() {
+            return isAdminLoggedIn; 
+        }
+
+        let isAuthReady = false;
+
+        // --- HARDCODED VIDEO CONTENT MAP ---
+        const VIDEO_PAGES = {
+            '985977d9b2517a8a6b30eb2115a43121': [
+                { 
+                    title: 'Aqua-Jet Aerator 3-D Animation (no audio)', 
+                    youTubeId: 'qtaj5BV-6BY', 
+                    shareSubject: 'Aqua-Jet Aerator 3-D Animation (no audio)',
+                    shareBody: "Below is the link to the 'Aqua-Jet Aerator 3-D Animation (no audio) - YouTube':%0Ahttps://youtu.be/qtaj5BV-6BY",
+                    hideShareLink: false 
+                },
+                { 
+                    title: 'AquaDDM Mixer 3-D Animation (no audio)', 
+                    youTubeId: 'ohqqKuAS0tY', 
+                    shareSubject: 'AquaDDM Mixer 3-D Animation (no audio)',
+                    shareBody: "Below is the link to the 'AquaDDM Mixer 3-D Animation (no audio) - YouTube':%0Ahttps://youtu.be/ohqqKuAS0tY",
+                    hideShareLink: false 
+                },
+                { 
+                    title: 'SAF-T FloatÂ® Handrail Installation', 
+                    youTubeId: 'ii4WmX3Zyjo', 
+                    shareSubject: 'SAF-T FloatÂ® Handrail Installation',
+                    shareBody: "Below is the link to the 'SAF-T FloatÂ® Handrail Installation - YouTube':%0Ahttps://youtu.be/ii4WmX3Zyjo",
+                    hideShareLink: false 
+                },
+                { 
+                    title: 'Fold-a-Float Product Video (no audio)', 
+                    youTubeId: 'kY_Q7Lka0kM', 
+                    shareSubject: 'Fold-a-Float Product Video (no audio)',
+                    shareBody: "Below is the link to the 'Fold-a-Float Product Video (no audio) - YouTube':%0Ahttps://youtu.be/kY_Q7Lka0kM.",
+                    hideShareLink: false 
+                }
+            ],
+            '8df3a2707c9b570c74fd767e91208e2b': [], 
+            '1c264bacc474875174b3d3f882ad03ad': [], 
+            'a4ef71d56eacf04cd13a3df03c291874': [], 
+            '7fbe50a1047a3213f94cf96514575592': [], 
+            '323b50ad0e270ceac66667a9b98e9050': [], 
+            '20c29312a8feaa9e71a7be838bbbcfa5': [], 
+            '09e83de5a9e2fd4a5f331cc06f98c02b': [], 
+            '4a8656dcbf47817d9b932f8a8065f0eb': [], 
+            'e1031177cf9e57d3640e81014b5d082f': [], 
+            '2026e835cc314adf29bea8ff6afc6ee7': [],
+            'ed7a53129ee1751228d956848abf53da': [], 
+            '93f59935106d8a6b346a6b631e217907': [], 
+            '9629a50f94f7e82056f778194e1f77c1': [],
+            '59d1de5b3789aac618498ce8cd826bfe': [],
+        };
+
+
+        // --- FIREBASE SETUP ---
+        async function initializeFirebase() {
+            try {
+                 if (!firebaseConfig.apiKey && firebaseConfig.projectId === "8") {
+                    console.warn("Firebase config is using placeholders/invalid. Admin console and logging disabled.");
+                    isAuthReady = true; 
+                    return;
+                }
+                
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                    } else {
+                        userId = crypto.randomUUID(); 
+                    }
+                    isAuthReady = true;
+                    console.log("Firebase Auth Ready. User ID:", userId);
+                    
+                    setupVideoDataListener();
+                    setupNotificationDataListener(); 
+                    setupSecretsListener(); 
+                });
+            } catch (e) {
+                console.error("Firebase Initialization Error:", e);
+                isAuthReady = true; 
+            }
+        }
+        
+        // --- FIREBASE LISTENERS ---
+        const VIDEO_COLLECTION_PATH = `artifacts/${appId}/public/data/video_configs`;
+        const VIDEO_CONFIG_DOC_ID = 'config'; 
+        const NOTIFICATION_COLLECTION_PATH = `artifacts/${appId}/public/data/notifications`;
+        const NOTIFICATION_DOC_ID = 'list'; 
+        const ADMIN_LOG_COLLECTION_PATH = `artifacts/${appId}/public/data/admin_access_log`;
+        const CONFIG_COLLECTION_PATH = `artifacts/${appId}/public/data/app_config`;
+        const SECRETS_DOC_ID = 'secrets'; 
+
+        function setupVideoDataListener() {
+             if (!db) return;
+             const docRef = doc(db, VIDEO_COLLECTION_PATH, VIDEO_CONFIG_DOC_ID);
+             onSnapshot(docRef, (docSnap) => {
+                 if (docSnap.exists()) {
+                     videoDataCache = docSnap.data() || {};
+                 } else {
+                     if (Object.keys(VIDEO_PAGES).length > 0) {
+                         setDoc(docRef, VIDEO_PAGES).catch(e => console.error("Error setting initial video config:", e));
+                     }
+                     videoDataCache = VIDEO_PAGES;
+                 }
+                 if (currentView === 'admin') renderAdminView();
+                 if (currentView === 'detail' && lastViewedKey && (videoDataCache[lastViewedKey] || VIDEO_PAGES[lastViewedKey])) {
+                     renderCustomVideoList(lastViewedKey);
+                 }
+             }, (error) => {
+                 console.error("Error listening to video configs:", error);
+                 videoDataCache = VIDEO_PAGES;
+             });
+        }
+        
+     function setupNotificationDataListener() {
+            if (!db) return;
+            const docRef = doc(db, NOTIFICATION_COLLECTION_PATH, NOTIFICATION_DOC_ID);
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists() && docSnap.data().items) {
+                    notificationDataCache = docSnap.data().items;
+                } else {
+                    notificationDataCache = [];
+                    setDoc(docRef, { items: [] }, { merge: true }).catch(e => console.error("Error initializing notification config:", e));
+                }
+                isNotificationsLoaded = true;
+                
+                // UPDATE ADMIN VIEW
+                if (currentView === 'admin') renderAdminView();
+
+                // FIX: If user is currently looking at the Notification Page, auto-refresh it
+                if (currentView === 'detail' && lastViewedKey === NOTIFICATION_PAGE_KEY) {
+                     renderNotificationPage();
+                }
+
+                // FIX: If the popup modal is currently open, refresh it too
+                if (document.body.classList.contains("modal-open") && !document.getElementById('notification-modal').classList.contains('opacity-0')) {
+                      showInitialNotificationModal(true);
+                }
+
+            }, (error) => {
+                console.error("Error listening to notification configs:", error);
+                notificationDataCache = [];
+                isNotificationsLoaded = true;
+                if (currentView === 'detail' && lastViewedKey === NOTIFICATION_PAGE_KEY) renderNotificationPage();
+            });
+        }
+        
+        function setupSecretsListener() {
+            if (!db) return;
+            const docRef = doc(db, CONFIG_COLLECTION_PATH, SECRETS_DOC_ID);
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists() && docSnap.data().adminPasscode) {
+                    ADMIN_PASSCODE = docSnap.data().adminPasscode;
+                    console.log("Admin Passcode loaded from Firebase.");
+                } else {
+                    if (!docSnap.exists()) {
+                         setDoc(docRef, { adminPasscode: "4444" }, { merge: true }).catch(e => console.error("Error initializing secrets config:", e));
+                         ADMIN_PASSCODE = "4444";
+                    }
+                    console.warn("Admin Passcode not found or not initialized in Firebase. Defaulting to '4444' or current value.");
+                }
+            }, (error) => {
+                console.error("Error listening to secrets config:", error);
+            });
+        }
+
+        async function logAdminAccess(name) {
+            await waitForAuthReady();
+            if (!db) return;
+            const logCollectionRef = collection(db, ADMIN_LOG_COLLECTION_PATH);
+            try {
+                await addDoc(logCollectionRef, {
+                    name: name,
+                    userId: userId,
+                    timestamp: Timestamp.fromDate(new Date()),
+                    device: getDeviceType()
+                });
+            } catch (e) {
+                console.error("Error logging admin access:", e);
+            }
+        }
+
+        async function saveVideoConfig(data) {
+             await waitForAuthReady(); 
+             if (!db || !userId) return false;
+             const docRef = doc(db, VIDEO_COLLECTION_PATH, VIDEO_CONFIG_DOC_ID);
+             try {
+                 await setDoc(docRef, data);
+                 console.log("Video configuration saved successfully.");
+                 return true;
+             } catch (e) {
+                 console.error("Error saving video configuration:", e);
+                 return false;
+             }
+        }
+        
+        // --- ADMIN LOGIN AND PASSCODE MODAL ---
+        function promptForPasscode() {
+            const modalHtml = `
+                <div id="passcode-prompt-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+                        <h3 class="text-xl font-bold text-[#D55355]">Admin Access Required</h3>
+                        <p class="text-sm text-gray-600">Enter your name and the administrative passcode to access configuration tools.</p>
+                        
+                        <label class="block text-sm font-medium text-gray-700">Your Name (Required)</label>
+                        <input type="text" id="admin-name-input" placeholder="e.g., John Smith" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                        
+                        <label class="block text-sm font-medium text-gray-700">Passcode</label>
+                        <input type="password" id="admin-passcode-input" placeholder="Passcode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                        
+                        <div id="passcode-error-message" class="text-red-500 text-sm hidden"></div>
+
+                        <div class="flex justify-end space-x-3 pt-2">
+                            <button onclick="closePasscodeModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button onclick="attemptAdminLogin()" class="px-4 py-2 text-white bg-[#00529c] rounded-lg hover:bg-[#003c73] font-semibold">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('body').append(modalHtml);
+            
+            $('#admin-name-input, #admin-passcode-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    attemptAdminLogin();
+                }
+            });
+        }
+        
+        function attemptAdminLogin() {
+            const name = $('#admin-name-input').val().trim();
+            const passcode = $('#admin-passcode-input').val().trim();
+            const errorElement = $('#passcode-error-message');
+
+            if (!name) {
+                errorElement.text("Name is required.").show();
+                return;
+            }
+            if (passcode === ADMIN_PASSCODE) {
+                isAdminLoggedIn = true;
+                closePasscodeModal();
+                logAdminAccess(name); 
+                showAdminView(); 
+                updateAdminButtonVisibility();
+            } else {
+                errorElement.text("Invalid Passcode.").show();
+                $('#admin-passcode-input').val(''); 
+            }
+        }
+        
+        function closePasscodeModal() {
+            $('#passcode-prompt-modal').remove();
+        }
+        
+        function checkAdminUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isUrlAdmin = urlParams.get('user') === 'admin';
+            
+            if (!isUrlAdmin) {
+                updateAdminButtonVisibility();
+                return;
+            }
+            if (!isAuthReady || ADMIN_PASSCODE === null) {
+                setTimeout(checkAdminUrl, 500);
+                return;
+            }
+            const isUidBypass = ADMIN_UIDS.includes(userId);
+            if (isUidBypass) {
+                isAdminLoggedIn = true;
+            } else if (!isAdminLoggedIn) {
+                promptForPasscode();
+            }
+            updateAdminButtonVisibility();
+        }
+
+        // --- NOTIFICATION ADMIN FUNCTIONS ---
+        function renderNotificationEditForm() {
+            if (!isAdmin()) {
+                 $('#admin-content').html('<div class="text-center p-8 text-red-500">Access Denied.</div>');
+                 return;
+            }
+            const notifications = notificationDataCache;
+            let html = `
+                <button onclick="showAdminView()" class="text-blue-500 hover:text-blue-700 mb-4">&lt; Back to Admin Console</button>
+                <h2 class="text-xl font-bold mb-4 text-[#D55355]">Editing Corporate Notifications</h2>
+                <div id="notification-list-editor" class="space-y-4 mb-6 p-4 border rounded-lg">
+                    ${notifications.map((notif, index) => `
+                        <div class="p-3 border rounded-md bg-white shadow-sm flex flex-col sm:flex-row sm:items-start justify-between space-y-2 sm:space-y-0" data-index="${index}">
+                            <div class="flex flex-col flex-grow">
+                                
+                                <label class="text-xs font-semibold text-gray-600">Title (Required)</label>
+                                <input type="text" id="notifTitle-${index}" value="${notif.title ? notif.title.replace(/"/g, '&quot;') : ''}" class="border rounded px-2 py-1 text-sm w-full">
+                                
+                                <label class="text-xs font-semibold text-gray-600 mt-2">Date Added (Optional)</label>
+                                <input type="date" id="notifDate-${index}" value="${notif.date || ''}" class="border rounded px-2 py-1 text-sm w-full max-w-[200px]">
+
+                                <label class="text-xs font-semibold text-gray-600 mt-2">Note/Body (Required)</label>
+                                <textarea id="notifNote-${index}" class="border rounded px-2 py-1 text-sm w-full h-16 resize-none">${notif.note ? notif.note.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''}</textarea>
+                                
+                                <label class="text-xs font-semibold text-gray-600 mt-2">Link URL (Optional, should be a full aqua_key path or ID)</label>
+                                <input type="text" id="notifLink-${index}" value="${notif.link ? notif.link.replace(/"/g, '&quot;') : ''}" class="border rounded px-2 py-1 text-sm w-full">
+                            </div>
+                            <div class="flex space-x-2 sm:flex-col sm:space-x-0 sm:space-y-1 mt-2 sm:mt-0 sm:ml-4 flex-shrink-0">
+                                <button class="text-gray-700 disabled:text-gray-300 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition move-notif-up-btn" data-index="${index}" ${index === 0 ? 'disabled' : ''}><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                                <button class="text-gray-700 disabled:text-gray-300 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition move-notif-down-btn" data-index="${index}" ${index === notifications.length - 1 ? 'disabled' : ''}><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                                <button class="text-red-500 hover:text-red-700 px-3 py-1 bg-red-100 rounded transition remove-notif-btn" data-index="${index}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="addNotification()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition mb-4">+ Add New Notification</button>
+                <button onclick="saveNotifications()" class="px-4 py-2 bg-[#00529c] text-white rounded hover:bg-[#003c73] transition mb-4 ml-4">Save Notifications</button>
+            `;
+            $('#admin-content').html(html);
+            replaceLucideIcons();
+        }
+
+        function addNotification() {
+            notificationDataCache.push({
+                title: 'New Notification Title',
+                note: 'New notification body text.',
+                link: null,
+                date: null 
+            });
+            renderNotificationEditForm();
+        }
+
+        function removeNotification(index) {
+            notificationDataCache.splice(index, 1);
+            renderNotificationEditForm();
+        }
+
+        function moveNotification(index, direction) {
+            const notifications = notificationDataCache;
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < notifications.length) {
+                [notifications[index], notifications[newIndex]] = [notifications[newIndex], notifications[index]];
+                renderNotificationEditForm();
+            }
+        }
+        
+        async function saveNotifications() {
+            await waitForAuthReady(); 
+            if (!db || !userId) return;
+
+            const editor = $('#notification-list-editor');
+            const newNotificationList = [];
+            let isValid = true;
+
+            editor.find('> div').each((index, element) => {
+                const title = $(`#notifTitle-${index}`).val().trim();
+                const note = $(`#notifNote-${index}`).val().trim();
+                const link = $(`#notifLink-${index}`).val().trim();
+                const date = $(`#notifDate-${index}`).val(); // Get date value
+
+                if (!title) {
+                    $(element).addClass('border-red-500 ring-2 ring-red-500');
+                    isValid = false;
+                    return;
+                }
+                $(element).removeClass('border-red-500 ring-2 ring-red-500');
+
+                newNotificationList.push({ 
+                    title: title, 
+                    note: note ? note : null,
+                    link: link ? link : null,
+                    date: date ? date : null // Save Date
+                });
+            });
+
+            if (!isValid) return;
+            
+            notificationDataCache = newNotificationList;
+            const docRef = doc(db, NOTIFICATION_COLLECTION_PATH, NOTIFICATION_DOC_ID);
+            try {
+                await setDoc(docRef, { items: newNotificationList });
+                renderNotificationEditForm();
+            } catch (e) {
+                console.error("Error saving notifications:", e);
+            }
+        }
+
+        // --- ADMIN VIEW LOGIC ---
+        function updateAdminButtonVisibility() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isUrlAdmin = urlParams.get('user') === 'admin';
+            const adminButton = document.getElementById('admin-button');
+            if (isUrlAdmin && isAdmin()) {
+                adminButton.style.display = 'inline-block';
+            } else {
+                adminButton.style.display = 'none';
+            }
+        }
+
+        function showAdminView() {
+            if (!isAdmin()) return;
+            currentView = 'admin';
+            $('#menu-content').hide();
+            $('#detail-view-container').hide();
+            $('#admin-view-container').fadeIn(300);
+            updateBackButton("Admin Console"); 
+            if (isAuthReady) {
+                renderAdminView();
+            } else {
+                $('#admin-content').html('<div class="text-center p-8 text-gray-500">Authentication failed or config missing.</div>');
+            }
+        }
+        
+        async function renderAdminLog() {
+            const logCollectionRef = collection(db, ADMIN_LOG_COLLECTION_PATH);
+            const logQuery = query(logCollectionRef, orderBy('timestamp', 'desc'));
+            let logEntries = [];
+            try {
+                const querySnapshot = await getDocs(logQuery);
+                querySnapshot.forEach(doc => {
+                    logEntries.push(doc.data());
+                });
+            } catch (e) {
+                return `<div class="text-center p-8 text-red-500">Error fetching logs: ${e.message}</div>`;
+            }
+            const logListHtml = logEntries.map(entry => {
+                const date = entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleString() : 'N/A';
+                const name = entry.name || 'Anonymous';
+                const userIdShort = entry.userId ? entry.userId.substring(0, 8) + '...' : 'N/A';
+                return `<li class="p-2 border-b last:border-b-0 text-sm"><span class="font-bold text-gray-700">${date}</span><span class="text-gray-600 ml-3">| User: ${name} (${userIdShort})</span><span class="text-gray-500 ml-3">| Device: ${entry.device || 'N/A'}</span></li>`;
+            }).join('');
+            return `
+                <div class="mt-8"><h3 class="text-xl font-bold text-[#00529c] mb-4">Admin Access Log</h3><ul class="bg-gray-50 p-4 rounded-lg border max-h-96 overflow-y-auto">${logListHtml || '<li class="text-gray-500 py-4 text-center">No access logs found.</li>'}</ul></div>`;
+        }
+
+        function renderAdminView() {
+             if (!isAdmin()) {
+                 $('#admin-content').html('<div class="text-center p-8 text-red-500">Access Denied.</div>');
+                 return;
+            }
+            const adminContent = $('#admin-content');
+            adminContent.empty();
+            const allPageKeys = Object.keys(VIDEO_PAGES);
+            const combinedConfig = {};
+            allPageKeys.forEach(key => {
+                combinedConfig[key] = videoDataCache[key] || VIDEO_PAGES[key] || [];
+            });
+
+            let html = `
+                <div class="mb-6 text-sm text-gray-600">User ID: <span class="font-mono text-xs bg-gray-100 p-1 rounded">${userId}</span></div>
+                <h2 class="text-2xl font-bold mb-4 text-[#00529c]">Video Admin</h2>
+                <div id="video-list-container-admin" class="space-y-4">`;
+
+            for (const pageId in combinedConfig) {
+                const videoList = combinedConfig[pageId];
+                const menuItem = menuData.find(item => item.aqua_key === pageId);
+                let menuName = `Page ID: ${pageId}`;
+                if (menuItem) {
+                    let fullPath = menuItem.aqua_name || menuItem.aqua_menu;
+                    const parentIndex = menuData.findIndex(item => item.aqua_key === pageId);
+                    if (parentIndex > 0) {
+                        for (let i = parentIndex - 1; i >= 0; i--) {
+                            if (menuData[i].aqua_name === menuData[i].aqua_menu) {
+                                const parentName = menuData[i].aqua_name;
+                                if (fullPath && !fullPath.includes(parentName)) {
+                                    fullPath = `${parentName} > ${fullPath}`;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    menuName = fullPath || `Page ID: ${pageId}`;
+                } 
+                html += `<div class="p-4 border rounded-lg bg-gray-50"><h3 class="font-semibold text-lg text-gray-800">${menuName}</h3><p class="text-sm text-gray-500 mb-2">Total Videos: ${videoList.length}</p><button class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition edit-video-btn" data-page-id="${pageId}">Edit Videos (${videoList.length})</button></div>`;
+            }
+            html += `</div>`;
+            
+            let notificationCount = notificationDataCache.length;
+            html += `
+                <h2 class="text-2xl font-bold mb-4 text-[#00529c] mt-8">Notification Admin</h2>
+                <div class="p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold text-lg text-gray-800">Corporate Notifications List</h3>
+                    <p class="text-sm text-gray-500 mb-2">Total Notifications: ${notificationCount}</p>
+                    <button class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition edit-notif-btn">Edit Notifications (${notificationCount})</button>
+                </div>
+            `;
+            adminContent.html(html);
+            renderAdminLog().then(logHtml => { adminContent.append(logHtml); });
+            replaceLucideIcons();
+        }
+
+        function renderVideoEditForm(pageId) {
+            const videoList = videoDataCache[pageId] || VIDEO_PAGES[pageId] || [];
+            const menuItem = menuData.find(item => item.aqua_key === pageId);
+            let pageName = menuItem ? (menuItem.aqua_name || menuItem.aqua_menu) : `Page ID: ${pageId}`;
+            
+            let html = `
+                <button onclick="showAdminView()" class="text-blue-500 hover:text-blue-700 mb-4">&lt; Back to Page List</button>
+                <h2 class="text-xl font-bold mb-4">Editing: ${pageName}</h2>
+                <div id="video-list-editor" class="space-y-4 mb-6 p-4 border rounded-lg">
+                    ${videoList.map((video, index) => `
+                        <div class="p-3 border rounded-md bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0" data-index="${index}">
+                            <div class="flex flex-col flex-grow">
+                                <label class="text-xs font-semibold text-gray-600">Title</label>
+                                <input type="text" id="title-${index}" value="${video.title.replace(/"/g, '&quot;')}" class="border rounded px-2 py-1 text-sm w-full">
+                                <label class="text-xs font-semibold text-gray-600 mt-2">YouTube ID (e.g., qtaj5BV-6BY)</label>
+                                <input type="text" id="youtubeId-${index}" value="${video.youTubeId}" class="border rounded px-2 py-1 text-sm w-full">
+                                <label class="text-xs font-semibold text-gray-600 mt-2 flex items-center space-x-2">
+                                    <input type="checkbox" id="hideShareLink-${index}" ${video.hideShareLink ? 'checked' : ''} class="rounded text-[#00529c]">
+                                    <span>Hide Email Share Link</span>
+                                </label>
+                                <label class="text-xs font-semibold text-gray-600 mt-2">Email Subject</label>
+                                <input type="text" id="shareSubject-${index}" value="${video.shareSubject.replace(/"/g, '&quot;')}" class="border rounded px-2 py-1 text-sm w-full">
+                                <label class="text-xs font-semibold text-gray-600 mt-2">Email Body (URL is auto-appended)</label>
+                                <textarea id="shareBody-${index}" class="border rounded px-2 py-1 text-sm w-full h-16 resize-none">${video.shareBody.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                            </div>
+                            <div class="flex space-x-2 sm:flex-col sm:space-x-0 sm:space-y-1 mt-2 sm:mt-0 sm:ml-4 flex-shrink-0">
+                                <button class="text-gray-700 disabled:text-gray-300 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition move-video-up-btn" data-page-id="${pageId}" data-index="${index}" ${index === 0 ? 'disabled' : ''}><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                                <button class="text-gray-700 disabled:text-gray-300 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition move-video-down-btn" data-page-id="${pageId}" data-index="${index}" ${index === videoList.length - 1 ? 'disabled' : ''}><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                                <button class="text-red-500 hover:text-red-700 px-3 py-1 bg-red-100 rounded transition remove-video-btn" data-page-id="${pageId}" data-index="${index}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition mb-4 add-video-btn" data-page-id="${pageId}">+ Add New Video</button>
+                <button class="px-4 py-2 bg-[#00529c] text-white rounded hover:bg-[#003c73] transition mb-4 ml-4 save-videos-btn" data-page-id="${pageId}">Save Changes</button>
+            `;
+            $('#admin-content').html(html);
+            replaceLucideIcons();
+        }
+
+        function moveVideo(pageId, index, direction) {
+            const videoList = videoDataCache[pageId] || [];
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < videoList.length) {
+                [videoList[index], videoList[newIndex]] = [videoList[newIndex], videoList[index]];
+                videoDataCache[pageId] = videoList;
+                renderVideoEditForm(pageId); 
+            }
+        }
+
+        function addVideo(pageId) {
+             const videoList = videoDataCache[pageId] || [];
+             videoList.push({ 
+                 title: 'Default: New Video', 
+                 youTubeId: 'PLACEHOLDER_ID', 
+                 shareSubject: 'Default: New Share Subject', 
+                 shareBody: 'New Share Body', 
+                 hideShareLink: false 
+             });
+             videoDataCache[pageId] = videoList;
+             renderVideoEditForm(pageId);
+        }
+        
+        function removeVideo(pageId, index) {
+             const videoList = videoDataCache[pageId] || [];
+             videoList.splice(index, 1);
+             videoDataCache[pageId] = videoList;
+             renderVideoEditForm(pageId);
+        }
+
+        async function saveCurrentVideos(pageId) {
+             const editor = $('#video-list-editor');
+             const newVideoList = [];
+             editor.find('> div').each((index, element) => {
+                 const title = $(`#title-${index}`).val();
+                 const youTubeId = $(`#youtubeId-${index}`).val();
+                 const shareSubject = $(`#shareSubject-${index}`).val();
+                 const shareBody = $(`#shareBody-${index}`).val();
+                 const hideShareLink = $(`#hideShareLink-${index}`).is(':checked'); 
+                 newVideoList.push({ title, youTubeId, shareSubject, shareBody, hideShareLink });
+             });
+             videoDataCache[pageId] = newVideoList;
+             const finalConfig = Object.keys(VIDEO_PAGES).reduce((acc, key) => {
+                 if (videoDataCache[key]) acc[key] = videoDataCache[key];
+                 return acc;
+             }, {});
+             await saveVideoConfig(finalConfig);
+             renderVideoEditForm(pageId); 
+        }
+
+        // --- VIDEO MODAL LOGIC ---
+        function openVideoModal(youtubeId, title) {
+            const videoModal = document.getElementById('video-modal');
+            const videoTitle = document.getElementById('video-title');
+            const youtubePlayer = document.getElementById('youtube-player');
+            const closeBtn = document.getElementById('video-close-btn');
+
+            const strippedTitle = title.replace(/<[^>]*>/g, '');
+            videoTitle.textContent = strippedTitle || 'Video Playback';
+            youtubePlayer.src = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&showinfo=0`;
+
+            videoModal.classList.remove('opacity-0', 'pointer-events-none');
+            videoModal.querySelector('div:last-child').classList.remove('scale-95');
+            videoModal.querySelector('div:last-child').classList.add('scale-100');
+            
+            const closeVideo = () => {
+                youtubePlayer.src = ''; 
+                videoModal.querySelector('div:last-child').classList.remove('scale-100');
+                videoModal.querySelector('div:last-child').classList.add('scale-95');
+                videoModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    videoModal.classList.add('pointer-events-none');
+                }, 300);
+            };
+            closeBtn.onclick = closeVideo;
+            videoModal.onclick = (e) => {
+                if (e.target === videoModal) closeVideo();
+            };
+        }
+
+        function renderCustomVideoList(pageId) {
+            const videos = videoDataCache[pageId] || VIDEO_PAGES[pageId] || [];
+            const customContentArea = $('#custom-content-area');
+            let videoListHtml = '<div class="video-list-container">';
+            
+            if (videos.length === 0) {
+                videoListHtml += '<div class="text-center p-8 text-gray-500">No videos configured for this page.</div>';
+            } else {
+                videos.forEach(video => {
+                    const isFullyConfigured = video.title && video.youTubeId && video.title !== 'Default: New Video';
+                    const isPlayable = video.youTubeId && video.youTubeId !== 'PLACEHOLDER_ID';
+                    const isShareLinkVisible = isFullyConfigured && !video.hideShareLink;
+                    const mailtoUrl = `mailto:?subject=${encodeURIComponent(video.shareSubject)} - YouTube video&body=${encodeURIComponent(video.shareBody)}`;
+                    
+                    videoListHtml += `
+                        <div class="video-item">
+                            ${isPlayable ? `
+                                <a href="javascript:void(0);" onclick="openVideoModal('${video.youTubeId}', '${video.title.replace(/'/g, "\\'")}')" class="video-play-link" title="Play Video">
+                                    <div class="video-cover">
+                                        <img src="videocover.png" alt="${video.title} Cover" class="shadow-lg" />
+                                        <span class="play-icon"><i data-lucide="play" class="w-8 h-8 text-[#D55355]"></i></span>
+                                    </div>
+                                </a>
+                            ` : `<div class="video-cover opacity-50"><span class="text-white text-center p-4">Video Not Configured</span></div>`}
+                            <span class="text-base font-semibold text-gray-800 mb-2 text-center">${video.title}</span>
+                            ${isShareLinkVisible ? `
+                                <a href="${mailtoUrl}" title="Share YouTube Video" class="text-sm flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition">
+                                    <img src="https://cdn2.iconfinder.com/data/icons/email-solid-1/48/email_share_mail-512.png" width="30" alt="Email Icon">
+                                    <span>Tap & share YouTube video</span>
+                                </a>
+                            ` : `<span class="text-sm text-gray-400">(Non-Shareable)</span>`}
+                        </div>
+                    `;
+                });
+            }
+            videoListHtml += '</div>';
+            customContentArea.html(videoListHtml);
+            replaceLucideIcons();
+            document.getElementById('detail-iframe').style.display = 'none';
+            document.getElementById('custom-content-area').style.display = 'block';
+        }
+
+        // --- NAVIGATION LOGIC ---
+        let lastViewedKey = null;
+
+        function updateBackButton(dynamicName = null) {
+            const dynamicTitleElement = document.getElementById('dynamic-title');
+            const navBackContainer = document.getElementById('nav-back-container');
+            const adminButton = document.getElementById('admin-button');
+            const appTitle = '1-Minute Reference Guide';
+            const homeTitleHtml = `<div class="app-logo-title"><span class="text-lg font-bold text-gray-800">${appTitle}</span></div>`;
+
+            if (currentView === 'menu') {
+                dynamicTitleElement.innerHTML = homeTitleHtml;
+                dynamicTitleElement.style.textAlign = 'center';
+                dynamicTitleElement.style.justifySelf = 'center';
+                navBackContainer.innerHTML = '';
+                updateAdminButtonVisibility(); 
+            } else if (currentView === 'detail' || currentView === 'admin') {
+                dynamicTitleElement.textContent = dynamicName || appTitle;
+                dynamicTitleElement.style.textAlign = 'center';
+                dynamicTitleElement.style.justifySelf = 'center';
+                navBackContainer.innerHTML = `<button id="nav-back-button" class="ios-back-link" onclick="handleBackButton()"><i data-lucide="chevron-left" class="w-6 h-6"></i> Back </button>`;
+                adminButton.style.display = (currentView !== 'admin' && isAdmin()) ? 'inline-block' : 'none'; 
+                replaceLucideIcons(); 
+            }
+        }
+
+        function handleBackButton() {
+            if (currentView === 'menu') {
+                window.top.location.href = 'https://aquaguide.app/';
+            } else if (currentView === 'admin' || currentView === 'detail') {
+                showMenuView();
+            }
+        }
+        
+        function showMenuView() {
+            currentView = 'menu';
+            lastViewedKey = null;
+            document.getElementById('detail-iframe').src = 'about:blank';
+            $('#custom-content-area').empty(); 
+            $('#detail-iframe').show(); 
+            $('#custom-content-area').hide(); 
+            $('#admin-view-container').hide(); 
+            $('#detail-view-container').fadeOut(300, function() {
+                $('#menu-content').fadeIn(300, function() {
+                    window.scrollTo(0, lastMenuScrollPosition); 
+                });
+                replaceLucideIcons();
+            });
+            updateBackButton();
+        }
+
+        async function showDetailPage(key, name) {
+            // UPDATED: Save scroll location to localStorage for retrieval if returning from external viewer
+            localStorage.setItem('aqua_scroll_pos', window.scrollY);
+            
+            currentView = 'detail';
+            lastViewedKey = key; 
+            const iframe = document.getElementById('detail-iframe');
+            lastMenuScrollPosition = window.scrollY;
+            
+            if (db) {
+                await waitForAuthReady(); 
+                if (isAuthReady) {
+                    const myTimestamp = Timestamp.fromDate(new Date()); 
+                    addDoc(collection(db, "users"), {
+                        date: myTimestamp,
+                        device: getDeviceType(),
+                        visited: name
+                    }).catch(error => console.error("Error adding document: ", error));
+                }
+            }
+            
+            $('#admin-view-container').hide();
+            let iframeId = key;
+            if (key.includes('/')) {
+                const parts = key.split('/');
+                iframeId = parts.shift().trim(); 
+            }
+            const videoData = videoDataCache[iframeId] || VIDEO_PAGES[iframeId];
+
+            if (iframeId === NOTIFICATION_PAGE_KEY) {
+                document.getElementById('detail-iframe').style.display = 'none'; 
+                renderNotificationPage(); 
+            } else if (videoData) {
+                document.getElementById('detail-iframe').style.display = 'none'; 
+                renderCustomVideoList(iframeId); 
+            } else {
+                document.getElementById('custom-content-area').style.display = 'none'; 
+                document.getElementById('detail-iframe').style.display = 'block'; 
+                const iframeUrl = `https://aquaguide.app/app/myaqua.php?id=${key}`;
+                iframe.src = iframeUrl;
+            }
+            $('#menu-content').fadeOut(300, function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                $('#detail-view-container').fadeIn(300);
+                updateBackButton(name); 
+            });
+        }
+
+        function showNotificationsPage(path) {
+            const parts = path.split('|');
+            const key = parts[0].trim();
+            const name = parts.length > 1 ? parts.slice(1).join('|').trim() : "Details";
+            const videoData = videoDataCache[key] || VIDEO_PAGES[key];
+
+            if (videoData) {
+                showDetailPage(key, name); 
+                return;
+            }
+            currentView = 'detail';
+            lastViewedKey = path;
+            const iframe = document.getElementById('detail-iframe');
+            const customArea = document.getElementById('custom-content-area');
+
+            customArea.style.display = 'none';
+            iframe.style.display = 'block';
+            let iframeUrl = "";
+            
+            if (key.startsWith("http://") || key.startsWith("https://")) {
+                iframeUrl = key; 
+            } else {
+                // Check if device is iOS (iPhone, iPad, iPod)
+                const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+                
+                if (isIos) {
+                    // iOS catch: if it's NOT http/s, assume it's an ID for myaqua.php
+                     iframeUrl = `https://aquaguide.app/app/myaqua.php?id=${key}`;
+                } else {
+                    // Non-iOS: Assume relative path
+                    const relativeKey = key.startsWith("/") ? key : "/" + key;
+                    iframeUrl = `https://aquaguide.app${relativeKey}`;
+                }
+            }
+            iframe.src = iframeUrl;
+            $('#menu-content').fadeOut(300, function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                $('#detail-view-container').fadeIn(300);
+                updateBackButton(name);
+            });
+        }
+
+        function getDeviceType(){
+            let device = "Unknown";
+            const ua = {
+                "Generic Linux": /Linux/i, "Android": /Android/i, "BlackBerry": /BlackBerry/i,
+                "Bluebird": /EF500/i, "Chrome OS": /CrOS/i, "Datalogic": /DL-AXIS/i,
+                "Honeywell": /CT50/i, "iPad": /iPad/i, "iPhone": /iPhone/i,
+                "iPod": /iPod/i, "macOS": /Macintosh/i, "Windows": /IEMobile|Windows/i,
+                "Zebra": /TC70|TC55/i,
+            }
+            Object.keys(ua).map(v => navigator.userAgent.match(ua[v]) && (device = v));
+            return device;
+        }
+
+        function setCookie(name, value, maxAgeSeconds) {
+            const maxAgeSegment = `; max-age=${maxAgeSeconds}`;
+            document.cookie = `${encodeURI(name)}=${encodeURI(value)}${maxAgeSegment}; path=/`;
+        }
+        function getCookie(cname) {
+            const name = cname + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1);
+                if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+
+// --- NEW: Helper to render the modal list with toggle capability ---
+// --- UPDATED: Helper to render the modal list (Mobile Friendly) ---
+function renderNotificationModalList(showAll) {
+    const modalBody = document.getElementById('modal-body');
+    const notifications = notificationDataCache;
+    
+    // Loading State
+    if (!isNotificationsLoaded) {
+        modalBody.innerHTML = `<div class="text-center p-8 text-gray-500">Loading live updates...</div>`;
+        return;
+    }
+
+    // Empty State
+    if (notifications.length === 0) {
+            modalBody.innerHTML = `<p class="text-base font-bold text-gray-800 mb-3 text-center">Corporate Notifications</p><ul class="divide-y divide-gray-100"><li class="text-center text-gray-500 py-6">No current corporate notifications available.</li></ul><hr class="my-4 border-gray-300" /><div class="text-center"><div class="text-xs text-gray-400 mt-2">Protecting the World's Water.</div></div>`;
+            return;
+    }
+
+    // 1. Slice Data (Show all or Top 5)
+    const itemsToShow = showAll ? notifications : notifications.slice(0, 5);
+
+    // 2. Map Items (Using the "Mobile Friendly" styles)
+    const listItemsHtml = itemsToShow.map(notif => {
+        // Icon Logic
+        let icon = '📢'; 
+        const titleLower = (notif.title || '').toLowerCase();
+        if (titleLower.includes('video')) icon = '🎬';
+        if (titleLower.includes('article')) icon = '📄';
+        if (titleLower.includes('seminar') || titleLower.includes('event')) icon = '📅';
+        if (titleLower.includes('webinar')) icon = '📅';
+
+        // Date Logic (Reference Style: Small, Mono, Gray, Border-Left)
+        const dateHtml = notif.date ? `<span class="text-xs text-gray-400 font-mono border-l pl-2 ml-2 border-gray-300 whitespace-nowrap flex-shrink-0">${formatDatePretty(notif.date)}</span>` : '';
+
+        // Link/Title Logic
+        const isLinkValid = notif.link && notif.link !== null && notif.link.trim() !== '';
+        // Note: Added 'block' and 'break-words' to ensure long titles don't break mobile layout
+        const titleHtml = isLinkValid ? 
+            `<a href='javascript:void(0);' onclick="closeNotificationModal(); showNotificationsPage('${notif.link.replace(/'/g, "\\'")}') ;" class="text-[#00529c] hover:underline font-semibold block break-words">${notif.title}</a>` :
+            `<span class="text-gray-900 font-semibold block break-words">${notif.title}</span>`;
+        
+        // Note Logic (Reference Style: Indented ml-9 to align with text, skipping icon)
+        const noteHtml = (notif.note && notif.note.trim() !== '') ? `<p class="text-sm text-gray-600 mt-1 ml-9 leading-relaxed">${notif.note}</p>` : '';
+
+        return `
+        <li class="p-4 hover:bg-gray-50 transition duration-150 border-b border-gray-100 last:border-0">
+            <div class="flex items-start">
+                <span class="text-2xl mr-3 select-none flex-shrink-0">${icon}</span>
+                <div class="flex-1 min-w-0"> 
+                    <div class="flex justify-between items-baseline">
+                        ${titleHtml}
+                        ${dateHtml}
+                    </div>
+                </div>
+            </div>
+            ${noteHtml}
+        </li>`;
+    }).join('');
+
+    // 3. Toggle Button Logic (Styled like the reference code)
+    let toggleBtnHtml = '';
+    if (!showAll && notifications.length > 5) {
+        const remaining = notifications.length - 5;
+        toggleBtnHtml = `
+            <li class="p-3 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer border-t border-gray-100" onclick="window.renderNotificationModalList(true)">
+                <span class="text-sm font-bold text-[#00529c] flex items-center justify-center gap-2">
+                    View ${remaining} more notifications... ⬇
+                </span>
+            </li>`;
+    } else if (showAll && notifications.length > 5) {
+        toggleBtnHtml = `
+            <li class="p-3 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer border-t border-gray-100" onclick="window.renderNotificationModalList(false)">
+                <span class="text-sm font-bold text-gray-500 flex items-center justify-center gap-2">
+                    Show Less ⬆
+                </span>
+            </li>`;
+    }
+
+    // 4. Update HTML
+    // Removed space-y-3 to let the list items handle their own padding/borders naturally
+    modalBody.innerHTML = `
+        <p class="text-base font-bold text-gray-800 mb-2 text-center sticky top-0 bg-white z-10 py-2 border-b">Corporate Notifications</p>
+        <ul class="list-none m-0 p-0 divide-y divide-gray-100">
+            ${listItemsHtml}
+            ${toggleBtnHtml}
+        </ul>
+        <div class="text-center pt-4 pb-2"><div class="text-xs text-gray-400">Protecting the World's Water.</div></div>
+    `;
+    
+    // Re-init the custom scrollbar
+    initCustomScrollbar();
+}
+ 
+function showInitialNotificationModal(forceOpen = false) {
+    const modal = document.getElementById('notification-modal');
+    const modalContainer = document.getElementById('modal-content-container');
+    
+    // 1. COOKIE CHECK
+    // If this isn't a forced click (e.g., auto-load) and cookie exists, do nothing.
+    if (!forceOpen && getCookie('displaypopup')) {
+        return; 
+    }
+
+    // 2. SET COOKIE
+    // If this is the initial auto-load, set the cookie for 7 days.
+    if (!forceOpen) {
+        setCookie('displaypopup', 'yes', 604800);
+    }
+
+    // 3. LOCK SCROLLING
+    // Crucial for mobile: adds the class that sets overflow:hidden on body
+    document.body.classList.add("modal-open"); 
+    
+    // 4. RENDER CONTENT 
+    // Pass 'false' to start with the "Top 5" view (Cleaner on mobile screens)
+    renderNotificationModalList(false);
+    
+    // 5. SHOW MODAL (Animation Classes)
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modalContainer.classList.remove('scale-95');
+    modalContainer.classList.add('scale-100');
+    
+    // 6. EVENT LISTENER (Pure JS)
+    // improved hit detection for close button and background backdrop
+    modal.onclick = (e) => {
+        // Close if clicking the dark background OR the close button
+        if (e.target === modal || e.target.closest('#modal-close-btn')) {
+            closeNotificationModal();
+        }
+    };
+}
+
+               
+        window.showNotificationModal = () => showInitialNotificationModal(true);
+
+function closeNotificationModal() {
+    const modal = document.getElementById('notification-modal');
+    const modalContainer = document.getElementById('modal-content-container');
+    const modalBody = document.getElementById('modal-body');
+
+    // 1. UNLOCK SCROLLING
+    // Allow the background page to scroll again
+    document.body.classList.remove("modal-open"); 
+    
+    // 2. ANIMATE OUT
+    modalContainer.classList.remove('scale-100');
+    modalContainer.classList.add('scale-95');
+    modal.classList.add('opacity-0');
+    
+    // 3. CLEANUP
+    // Wait for the 300ms transition to finish, then hide completely and clear DOM
+    setTimeout(() => {
+        modal.classList.add('pointer-events-none');
+        if (modalBody) modalBody.innerHTML = ''; // Clear content to save memory on mobile
+    }, 300);
+}
+
+ // --- UPDATED: Full Page Notification Renderer (Mobile Friendly + Top 5 Toggle) ---
+function renderNotificationPage(showAll = false) {
+    const customContentArea = $('#custom-content-area');
+
+    // 1. Loading State
+    if (!isNotificationsLoaded) {
+        const loadingHtml = `
+            <div class="p-8 text-center">
+                <svg class="animate-spin h-8 w-8 mx-auto text-[#00529c] mb-4" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-gray-600 font-semibold">Loading Notifications...</p>
+            </div>`;
+        customContentArea.html(loadingHtml);
+        document.getElementById('detail-iframe').style.display = 'none';
+        document.getElementById('custom-content-area').style.display = 'block';
+        return;
+    }
+
+    const notifications = notificationDataCache;
+
+    // 2. Empty State
+    if (notifications.length === 0) {
+        const emptyHtml = `
+            <div class="p-4">
+                <h2 class="text-2xl font-bold text-[#D55355] mb-4">1-Minute Reference Guide</h2>
+                <ul class="divide-y divide-gray-100 border-t border-b">
+                    <li class="text-center text-gray-500 py-6">No current corporate notifications available.</li>
+                </ul>
+                <div class="text-center mt-6"><div class="text-xs text-gray-400">Protecting the World's Water.</div></div>
+            </div>`;
+        customContentArea.html(emptyHtml);
+        document.getElementById('detail-iframe').style.display = 'none';
+        document.getElementById('custom-content-area').style.display = 'block';
+        return;
+    }
+
+    // 3. Slice Data (Show all or Top 5)
+    const itemsToShow = showAll ? notifications : notifications.slice(0, 5);
+
+    // 4. Map Items (Consistent Mobile-Friendly Styling)
+    const listItemsHtml = itemsToShow.map(notif => {
+        // Icon Logic
+        let icon = '📢'; 
+        const titleLower = (notif.title || '').toLowerCase();
+        if (titleLower.includes('video')) icon = '🎬';
+        if (titleLower.includes('article')) icon = '📄';
+        if (titleLower.includes('seminar') || titleLower.includes('event')) icon = '📅';
+        if (titleLower.includes('webinar')) icon = '📅';
+
+        // Date Logic
+        const dateHtml = notif.date ? `<span class="text-xs text-gray-400 font-mono border-l pl-2 ml-2 border-gray-300 whitespace-nowrap flex-shrink-0">${formatDatePretty(notif.date)}</span>` : '';
+
+        // Link/Title Logic
+        const isLinkValid = notif.link && notif.link !== null && notif.link.trim() !== '';
+        const titleHtml = isLinkValid ? 
+            `<a href='javascript:void(0);' onclick="showNotificationsPage('${notif.link.replace(/'/g, "\\'")}') ;" class="text-[#00529c] hover:underline font-semibold block break-words">${notif.title}</a>` :
+            `<span class="text-gray-900 font-semibold block break-words">${notif.title}</span>`;
+        
+        // Note Logic
+        const noteHtml = (notif.note && notif.note.trim() !== '') ? `<p class="text-sm text-gray-600 mt-1 ml-9 leading-relaxed">${notif.note}</p>` : '';
+
+        return `
+        <li class="p-4 hover:bg-gray-50 transition duration-150 border-b border-gray-100 last:border-0">
+            <div class="flex items-start">
+                <span class="text-2xl mr-3 select-none flex-shrink-0">${icon}</span>
+                <div class="flex-1 min-w-0"> 
+                    <div class="flex justify-between items-baseline">
+                        ${titleHtml}
+                        ${dateHtml}
+                    </div>
+                </div>
+            </div>
+            ${noteHtml}
+        </li>`;
+    }).join('');
+
+    // 5. Toggle Button Logic
+    let toggleBtnHtml = '';
+    if (!showAll && notifications.length > 5) {
+        const remaining = notifications.length - 5;
+        toggleBtnHtml = `
+            <li class="p-3 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer border-t border-gray-100" onclick="window.renderNotificationPage(true)">
+                <span class="text-sm font-bold text-[#00529c] flex items-center justify-center gap-2">
+                    View ${remaining} more notifications... ⬇
+                </span>
+            </li>`;
+    } else if (showAll && notifications.length > 5) {
+        toggleBtnHtml = `
+            <li class="p-3 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer border-t border-gray-100" onclick="window.renderNotificationPage(false)">
+                <span class="text-sm font-bold text-gray-500 flex items-center justify-center gap-2">
+                    Show Less ⬆
+                </span>
+            </li>`;
+    }
+
+    // 6. Assembly
+    const fullPageContent = `
+        <div class="p-4">
+            <h2 class="text-2xl font-bold text-[#D55355] mb-4">1-Minute Reference Guide</h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <ul class="list-none m-0 p-0 divide-y divide-gray-100">
+                    ${listItemsHtml}
+                    ${toggleBtnHtml}
+                </ul>
+            </div>
+            <div class="text-center mt-6"><div class="text-xs text-gray-400">Protecting the World's Water.</div></div>
+        </div>
+    `;
+    
+    // 7. Render
+    customContentArea.html(fullPageContent);
+    document.getElementById('detail-iframe').style.display = 'none';
+    document.getElementById('custom-content-area').style.display = 'block';
+}
+        function checkAndShowNotification() {
+            showInitialNotificationModal(false); // Check cookie
+        }
+
+        function replaceLucideIcons() {
+             lucide.createIcons();
+        }
+
+        function generateMenu(data) {
+            menuData = data; 
+            const menuContent = $('#menu-content');
+            const mainList = $('<ul/>', { 'class': 'main-category-list list-none space-y-4' });
+            const groups = {};
+            let currentGroup = null;
+
+            data.forEach(val => {
+                const name = val.aqua_name.trim();
+                const menu = val.aqua_menu.trim();
+                const key = val.aqua_key;
+                if (name === menu) {
+                    currentGroup = name;
+                    groups[currentGroup] = { html: '', subItems: [] };
+                    let mainLink = '';
+                    if (name.startsWith("CALENDAR OF EVENTS")) {
+                        mainLink = `<a href='javascript:void(0);' onclick="showDetailPage('${key}', '${name}')" class="text-lg font-bold text-[#00529c] hover:text-[#D55355]">${name}</a>`;
+                    } else if (name.startsWith("CORPORATE NOTIFICATIONS")) {
+                        mainLink = `<a href='javascript:void(0);' onclick="showDetailPage('${NOTIFICATION_PAGE_KEY}', '${name}')" class="text-lg font-bold text-[#00529c] hover:text-[#D55355]">${name}</a>`;
+                    } else {
+                        mainLink = `<span class="text-lg font-bold text-gray-900">${name}</span>`;
+                    }
+                    groups[currentGroup].html = mainLink;
+                } else if (currentGroup) {
+                    groups[currentGroup].subItems.push(val);
+                }
+            });
+
+            for (const groupName in groups) {
+                const group = groups[groupName];
+                const mainListItem = $(`<li class="main-category-list-item list-none"></li>`);
+                mainListItem.append(group.html);
+                if (group.subItems.length > 0) {
+                    const subList = $('<ul class="list-none pt-2 border-l-2 border-[#00529c]/50 ml-4 space-y-2"></ul>');
+                    group.subItems.forEach(subItem => {
+                        const name = subItem.aqua_name.trim();
+                        const key = subItem.aqua_key;
+                        let itemHTML = '';
+                        const space2 = "Learn and Earn Rep Training";
+                        let indentClass = 'pl-4'; 
+                        if (name.startsWith(space2)) indentClass = 'pl-8'; 
+
+                        if (name.startsWith('Online Webinars')) {
+                             itemHTML = `<li class="text-gray-700 font-semibold py-1 pl-4">${name}</li>`;
+                        } else {
+                             itemHTML = `<li class="link-item text-gray-700 hover:text-[#00529c] transition duration-150 py-1 ${indentClass}">
+                                             <a href='javascript:void(0);' onclick="showDetailPage('${key}', '${name}')" class="flex items-center justify-between group pr-2">
+                                                 <span class="group-hover:text-[#D55355]">${name}</span>
+                                                 <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 group-hover:text-[#00529c] transition duration-150"></i>
+                                             </a>
+                                         </li>`;
+                        }
+                        subList.append(itemHTML);
+                    });
+                    mainListItem.append(subList);
+                }
+                mainList.append(mainListItem);
+            }
+            menuContent.html(mainList);
+            $('#loading').hide();
+            
+            // UPDATED: Check if we are returning from redirect.html/viewer.html
+            // If so, restore scroll position immediately without animation for better UX
+            if (localStorage.getItem('returnFromViewer') === 'true') {
+                menuContent.show(); // Show instantly to allow scroll
+                const savedPos = localStorage.getItem('aqua_scroll_pos');
+                if (savedPos) {
+                    console.log("Restoring scroll position:", savedPos);
+                    window.scrollTo(0, parseInt(savedPos));
+                }
+                localStorage.removeItem('returnFromViewer');
+                replaceLucideIcons(); 
+            } else {
+                menuContent.fadeIn(500, replaceLucideIcons); 
+            }
+            updateBackButton(); 
+        }
+
+        $(document).ready(function() {
+            initializeFirebase(); 
+            $('#admin-view-container').on('click', '.edit-video-btn', function() { renderVideoEditForm($(this).data('page-id')); });
+            $('#admin-view-container').on('click', '.edit-notif-btn', function() { renderNotificationEditForm(); });
+            $('#admin-view-container').on('click', '.move-video-up-btn', function() { moveVideo($(this).data('page-id'), parseInt($(this).data('index')), -1); });
+            $('#admin-view-container').on('click', '.move-video-down-btn', function() { moveVideo($(this).data('page-id'), parseInt($(this).data('index')), 1); });
+            $('#admin-view-container').on('click', '.remove-video-btn', function() { removeVideo($(this).data('page-id'), parseInt($(this).data('index'))); });
+            $('#admin-view-container').on('click', '.add-video-btn', function() { addVideo($(this).data('page-id')); });
+            $('#admin-view-container').on('click', '.save-videos-btn', function() { saveCurrentVideos($(this).data('page-id')); });
+            $('#admin-view-container').on('click', '.move-notif-up-btn', function() { moveNotification(parseInt($(this).data('index')), -1); });
+            $('#admin-view-container').on('click', '.move-notif-down-btn', function() { moveNotification(parseInt($(this).data('index')), 1); });
+            $('#admin-view-container').on('click', '.remove-notif-btn', function() { removeNotification(parseInt($(this).data('index'))); });
+
+            $.ajax({
+                url: 'https://aquaguide.app/app/json.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    generateMenu(data);
+                    const initialCheckInterval = setInterval(() => {
+                        if (isAuthReady) {
+                            clearInterval(initialCheckInterval);
+                            checkAdminUrl(); 
+                            checkAndShowNotification();
+                        }
+                    }, 100);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching menu data:", status, error);
+                    $('#loading').html('<div class="text-red-600 font-semibold">Error loading menu data. Please try refreshing.</div>');
+                }
+            });
+        });
+
+function initCustomScrollbar() {
+ const body=document.getElementById("modal-body");
+ const track=document.getElementById("modal-scrollbar");
+ const thumb=document.getElementById("modal-scrollbar-thumb");
+ if(!body||!track||!thumb)return;
+ let dragging=false,startY=0,startScroll=0;
+ function updateThumb(){
+  const view=body.clientHeight,total=body.scrollHeight;
+  const ratio=view/total;
+  thumb.style.height=Math.max(view*ratio,40)+"px";
+  const maxTrack=track.clientHeight-thumb.offsetHeight;
+  const scrollRatio=body.scrollTop/(total-view);
+  thumb.style.top=(maxTrack*scrollRatio)+"px";
+  showThumb();
+ }
+ function showThumb(){
+  thumb.style.opacity="1";
+  clearTimeout(thumb.fadeTimer);
+  thumb.fadeTimer=setTimeout(()=>thumb.style.opacity="0",1200);
+ }
+ body.addEventListener("scroll",updateThumb);
+ thumb.addEventListener("touchstart",e=>{
+  dragging=true; startY=e.touches[0].clientY; startScroll=body.scrollTop; showThumb(); e.preventDefault();
+ });
+ document.addEventListener("touchmove",e=>{
+  if(!dragging)return;
+  const delta=e.touches[0].clientY-startY;
+  const factor=body.scrollHeight/track.clientHeight;
+  body.scrollTop=startScroll+delta*factor;
+  updateThumb(); e.preventDefault();
+ });
+ document.addEventListener("touchend",()=>dragging=false);
+ setTimeout(updateThumb,50);
+}
+// --- END EMBEDDED JAVASCRIPT LOGIC ---
+    </script>
+
+<div id="a2hs-banner" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; background:#00529c; color:white; padding:16px; border-radius:12px; z-index:9999; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align:center; font-family: 'Inter', sans-serif;">
+    <div id="a2hs-msg" style="font-weight:600; font-size:15px; line-height:1.5;">
+        Install 1-Minute Reference Guide
+    </div>
+</div>
+
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("service-worker.js")
+                .then(reg => console.log("SW Registered"))
+                .catch(err => console.warn("SW failed:", err));
+        });
+    }
+</script>
+
+<script>
+    // 1. Detect iOS
+    const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+    }
+
+    // 2. Detect if already in Standalone Mode (Installed)
+    const isInStandaloneMode = () => {
+        return ('standalone' in window.navigator) && (window.navigator.standalone);
+    }
+
+    let deferredPrompt;
+    const banner = document.getElementById('a2hs-banner');
+    const msg = document.getElementById('a2hs-msg');
+
+    // --- LOGIC FOR ANDROID (Chrome/Edge) ---
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent default browser banner
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Show our custom banner
+        banner.style.display = 'block';
+        msg.innerHTML = "Tap here to install the Reference Guide";
+        
+        // Hide Android prompt after 6 seconds
+        setTimeout(() => {
+             banner.style.display = 'none';
+        }, 6000);
+
+        banner.onclick = () => {
+            banner.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        };
+    });
+
+    // --- LOGIC FOR IOS (Safari) ---
+    window.addEventListener('load', () => {
+        // If it's iOS and NOT already installed
+        if (isIos() && !isInStandaloneMode()) {
+            
+            // Show the banner
+            banner.style.display = 'block';
+            
+            // Custom instructions using native Emojis (Cleaner than external images)
+            msg.innerHTML = `
+                To install on iPhone/iPad:<br>
+                Tap <span style="font-size:20px">📤</span> (Share) <br>
+                then "+ Add to Home Screen" <span style="font-size:20px"></span>
+            `;
+
+
+            const hideBanner = () => {
+                $(banner).fadeOut(300); // Smooth fade out using jQuery
+            };
+
+            // 1. Close on tap
+            banner.onclick = hideBanner;
+            
+            // 2. Close automatically after 6 seconds
+            setTimeout(hideBanner, 6000);
+
+            // 3. Close on scroll (Wait 1s before attaching so initial load doesn't trigger it)
+            setTimeout(() => {
+                window.addEventListener('scroll', hideBanner, { once: true });
+            }, 1000);
+        }
+    });
+</script>
+
+<script>
+/* ============================================================
+   AquaGuide PDF Override — iOS Full PDF Viewer Fix
+   ------------------------------------------------------------
+   This forces ANY PDF link to open using window.location.href,
+   bypassing iframe preview mode and Safari restrictions.
+   ============================================================ */
+(function() {
+    // 1. If this page receives a ?url=<pdf> param, auto-redirect.
+    const urlParam = new URLSearchParams(location.search).get("url");
+    if (urlParam && urlParam.toLowerCase().endsWith(".pdf")) {
+        console.log("PDF override: redirecting to", urlParam);
+        window.location.href = urlParam;
+        return;
+    }
+    // 2. Override window.open for PDFs
+    const originalOpen = window.open;
+    window.open = function(url, target, features) {
+        if (url && url.toLowerCase().endsWith(".pdf")) {
+            console.log("PDF override: window.open → redirect to", url);
+            window.location.href = url;
+            return null;
+        }
+        return originalOpen.call(window, url, target, features);
+    };
+    // 3. Override clicks on <a href="*.pdf">
+    document.addEventListener("click", function(e) {
+        const a = e.target.closest("a");
+        if (!a) return;
+        const href = a.getAttribute("href");
+        if (href && href.toLowerCase().endsWith(".pdf")) {
+            e.preventDefault();
+            console.log("PDF override: anchor click → redirect", href);
+            window.location.href = href;
+        }
+    });
+})();
+</script>
+
+</body>
+</html>
